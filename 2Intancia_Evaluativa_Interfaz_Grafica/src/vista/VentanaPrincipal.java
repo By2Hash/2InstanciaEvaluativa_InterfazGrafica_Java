@@ -129,6 +129,10 @@ public class VentanaPrincipal extends JFrame {
         initLayouts();
     }
 
+    public boolean isPresente() {
+        return rbPresente.isSelected();
+    }
+
     // ────────────────────────────────────────────────────────────
     //  CREACION DE COMPONENTES
     // ────────────────────────────────────────────────────────────
