@@ -14,6 +14,13 @@
 
 ---
 
+diseño final <img width="1393" height="868" alt="image" src="https://github.com/user-attachments/assets/7198e8fd-da94-42a8-8db2-53af9733bb56" />
+
+login <img width="436" height="321" alt="image" src="https://github.com/user-attachments/assets/8a34bc60-16e7-4b6f-83c8-66fdfbce5e27" />
+
+prompt facundo degani : https://g.co/gemini/share/47a271efe5c8 
+https://g.co/gemini/share/df0181c9d892
+
 ## 📋 Descripción
 
 Transformación del Sistema de Autogestión Estudiantil desarrollado en la 1° IE (consola) a una aplicación de escritorio con interfaz gráfica en Java Swing, aplicando arquitectura **MVC + DAO** y persistencia en archivos de texto.
