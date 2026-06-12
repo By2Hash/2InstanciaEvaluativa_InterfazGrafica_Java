@@ -108,11 +108,6 @@ public class VentanaPrincipal extends JFrame {
     // ────────────────────────────────────────────────────────────
 
     private JButton btnDarDeBaja;
-    private JPanel confirmacionBajaPanel;
-    private JButton btnAceptarBaja;
-    private JButton btnCancelarBaja;
-    private CardLayout cardBaja;
-    private JPanel panelCardBaja;
 
     // Codigo guardado al presionar "Dar de Baja"
     private String codigoPendienteDeBaja = null;
@@ -250,40 +245,13 @@ public class VentanaPrincipal extends JFrame {
         lblHistorialNotas       = new JLabel("Historial Notas: \u2014"); lblHistorialNotas.setFont(labelFont);
         lblPromedio             = new JLabel("Promedio: \u2014");        lblPromedio.setFont(labelFont);
 
-        // ── DAR DE BAJA (FIX 1 + FIX 2) ─────────────────
+        // ── DAR DE BAJA ─────────────────
 
         btnDarDeBaja = new JButton("Dar de Baja");
         btnDarDeBaja.setBackground(ROJO_BAJA);
         btnDarDeBaja.setForeground(TEXTO_INVERSO);
         btnDarDeBaja.setFont(new Font("SansSerif", Font.BOLD, 11));
         btnDarDeBaja.setFocusPainted(false);
-
-        btnAceptarBaja  = new JButton("Aceptar");
-        btnCancelarBaja = new JButton("Cancelar");
-
-        confirmacionBajaPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
-        confirmacionBajaPanel.setBackground(FONDO_PANEL);
-        confirmacionBajaPanel.add(new JLabel("Confirma la baja?"));
-        confirmacionBajaPanel.add(btnAceptarBaja);
-        confirmacionBajaPanel.add(btnCancelarBaja);
-
-        // FIX 1: usamos CardLayout con preferredSize explicito para que
-        // BoxLayout nunca colapse el contenedor al alternar cartas.
-        cardBaja = new CardLayout();
-        panelCardBaja = new JPanel(cardBaja);
-        panelCardBaja.setBackground(FONDO_PANEL);
-        // Tamaño fijo: ancho suficiente para el panel de confirmacion
-        // (label + 2 botones) y alto de un boton estandar
-        panelCardBaja.setPreferredSize(new Dimension(240, 30));
-        panelCardBaja.setMaximumSize(new Dimension(240, 30));
-
-        JPanel wrapBoton = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        wrapBoton.setBackground(FONDO_PANEL);
-        wrapBoton.add(btnDarDeBaja);
-
-        panelCardBaja.add(wrapBoton,             "BOTON");
-        panelCardBaja.add(confirmacionBajaPanel, "CONFIRMACION");
-        cardBaja.show(panelCardBaja, "BOTON");
 
         // ── BOTON VOLVER ──────────────────────────────────
 
@@ -431,12 +399,12 @@ public class VentanaPrincipal extends JFrame {
         subDatos.add(lblHistorialNotas);
         subDatos.add(lblPromedio);
 
-        // Subpanel Baja — FIX 1: panelCardBaja en lugar de BoxLayout con setVisible
+        // Subpanel Baja
         JPanel subBaja = new JPanel();
         subBaja.setLayout(new BoxLayout(subBaja, BoxLayout.Y_AXIS));
         subBaja.setBackground(FONDO_PANEL);
         subBaja.setBorder(BorderFactory.createTitledBorder("Baja"));
-        subBaja.add(panelCardBaja);
+        subBaja.add(btnDarDeBaja);
 
         panelAcciones.add(subAsistencia);
         panelAcciones.add(subNota);
@@ -512,22 +480,13 @@ public class VentanaPrincipal extends JFrame {
         btnRegistrarAsistencia.setActionCommand("REGISTRAR_ASISTENCIA");
         btnRegistrarAsistencia.addActionListener(al);
 
-        rbPresente.setActionCommand("PRESENTE"); rbPresente.addActionListener(al);
-        rbAusente.setActionCommand("AUSENTE");   rbAusente.addActionListener(al);
-
         btnNotaAgregada.setActionCommand("NOTA_AGREGADA"); btnNotaAgregada.addActionListener(al);
 
-        // FIX 2: al presionar "Dar de Baja" guardamos el codigo ANTES
-        // de mostrar el panel de confirmacion, porque al redibujar la
-        // interfaz la tabla puede perder su seleccion
         btnDarDeBaja.addActionListener(e -> {
             codigoPendienteDeBaja = getSelectedCodigo();
             al.actionPerformed(new java.awt.event.ActionEvent(
                     btnDarDeBaja, java.awt.event.ActionEvent.ACTION_PERFORMED, "BAJA"));
         });
-
-        btnAceptarBaja.setActionCommand("CONFIRMAR_BAJA");  btnAceptarBaja.addActionListener(al);
-        btnCancelarBaja.setActionCommand("CANCELAR_BAJA");  btnCancelarBaja.addActionListener(al);
 
         btnVolver.setActionCommand("VOLVER_PRINCIPAL");     btnVolver.addActionListener(al);
     }
@@ -544,6 +503,19 @@ public class VentanaPrincipal extends JFrame {
 
     public int getComboCuatrimestre() {
         return Integer.parseInt((String) comboCuatrimestre.getSelectedItem());
+    }
+
+    public String[] mostrarRegistroEstudiante() {
+        frmRegistroEstudiante dlg = new frmRegistroEstudiante();
+        dlg.setVisible(true);
+        return new String[]{dlg.getNombre(), dlg.getLegajo(), dlg.getCarrera(), dlg.getTxtAnio()};
+    }
+
+    public void limpiarFormulario() {
+        txtInscNombre.setText("");
+        txtInscCodigo.setText("");
+        txtInscAnio.setText("");
+        comboCuatrimestre.setSelectedIndex(0);
     }
 
     public int getSelectedRow() { return tabla.getSelectedRow(); }
@@ -565,9 +537,7 @@ public class VentanaPrincipal extends JFrame {
         return codigoPendienteDeBaja;
     }
 
-    public void limpiarCodigoPendienteDeBaja() {
-        codigoPendienteDeBaja = null;
-    }
+
 
     // ────────────────────────────────────────────────────────────
     //  API PUBLICA — SETTERS
@@ -614,12 +584,20 @@ public class VentanaPrincipal extends JFrame {
     public void mostrarPanelPrincipal() { cardLayout.show(panelCards, "PRINCIPAL"); }
     public void mostrarPanelReportes()  { cardLayout.show(panelCards, "REPORTES"); }
 
-    /**
-     * FIX 1: CardLayout interno — nunca colapsa el area de Baja.
-     */
-    public void mostrarConfirmacionBaja(boolean mostrar) {
-        cardBaja.show(panelCardBaja, mostrar ? "CONFIRMACION" : "BOTON");
-        if (!mostrar) limpiarCodigoPendienteDeBaja();
+    public boolean mostrarConfirmacionBaja() {
+        if (codigoPendienteDeBaja == null) {
+            mostrarError("Seleccione una materia de la tabla.");
+            return false;
+        }
+        int respuesta = JOptionPane.showConfirmDialog(this,
+                "Confirma la baja de la materia " + codigoPendienteDeBaja + "?",
+                "Confirmar Baja",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (respuesta != JOptionPane.YES_OPTION) {
+            codigoPendienteDeBaja = null;
+            return false;
+        }
+        return true;
     }
 
     // ────────────────────────────────────────────────────────────

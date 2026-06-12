@@ -25,6 +25,12 @@ public class Estudiante extends PersonaAcademica implements Consultable {
         materias.add(new InscripcionMateria(m, totalClases));
     }
 
+    public void restaurarInscripcion(InscripcionMateria ins) {
+        if (getInscripcion(ins.getMateria().getCodigo()) == null) {
+            materias.add(ins);
+        }
+    }
+
     public void darDeBaja(String codigoMateria) {
         InscripcionMateria ins = getInscripcion(codigoMateria);
         if (ins == null)
@@ -67,7 +73,7 @@ public class Estudiante extends PersonaAcademica implements Consultable {
         return criticas;
     }
 
-    public ArrayList<InscripcionMateria> getMaterias() { return materias; }
+    public ArrayList<InscripcionMateria> getMaterias() { return new ArrayList<>(materias); }
 
     @Override
     public void mostrarResumen() {

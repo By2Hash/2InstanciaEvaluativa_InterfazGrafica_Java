@@ -6,7 +6,6 @@ import modelo.Estudiante;
 import modelo.InscripcionMateria;
 import modelo.Materia;
 import vista.VentanaPrincipal;
-import vista.frmRegistroEstudiante;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,15 +32,15 @@ public class Controlador implements ActionListener {
         // Cargar o registrar estudiante
         this.estudiante = estudianteDAO.cargar();
         if (this.estudiante == null) {
-            frmRegistroEstudiante registro = new frmRegistroEstudiante();
-            registro.setVisible(true); // modal: bloquea hasta que el usuario confirme
+            String[] datos = vista.mostrarRegistroEstudiante();
             try {
-                this.estudiante = new Estudiante(
-                        registro.getNombre(),
-                        registro.getLegajo(),
-                        registro.getCarrera(),
-                        Integer.parseInt(registro.getTxtAnio())
-                );
+                if (datos[0].isEmpty() || datos[1].isEmpty() || datos[2].isEmpty() || datos[3].isEmpty()) {
+                    this.estudiante = new Estudiante("Sin nombre", "00000", "Sin carrera", 2024);
+                } else {
+                    this.estudiante = new Estudiante(
+                            datos[0], datos[1], datos[2], Integer.parseInt(datos[3])
+                    );
+                }
                 estudianteDAO.guardar(this.estudiante);
             } catch (NumberFormatException e) {
                 this.estudiante = new Estudiante("Sin nombre", "00000", "Sin carrera", 2024);
@@ -52,7 +51,7 @@ public class Controlador implements ActionListener {
         // Restaurar inscripciones guardadas
         ArrayList<InscripcionMateria> inscripciones = inscripcionDAO.cargar();
         for (InscripcionMateria ins : inscripciones) {
-            estudiante.getMaterias().add(ins);
+            estudiante.restaurarInscripcion(ins);
         }
 
         // Conectar listeners y mostrar estado inicial
@@ -78,9 +77,7 @@ public class Controlador implements ActionListener {
             case "INSCRIBIR"            -> inscribir();
             case "REGISTRAR_ASISTENCIA" -> registrarAsistencia();
             case "NOTA_AGREGADA"        -> agregarNota();
-            case "BAJA"                 -> vista.mostrarConfirmacionBaja(true);
-            case "CONFIRMAR_BAJA"       -> confirmarBaja();
-            case "CANCELAR_BAJA"        -> vista.mostrarConfirmacionBaja(false);
+            case "BAJA"                 -> { if (vista.mostrarConfirmacionBaja()) confirmarBaja(); }
             case "SITUACION_GENERAL"    -> mostrarSituacionGeneral();
             case "MATERIAS_EN_RIESGO"   -> mostrarMateriasEnRiesgo();
             case "APROBADAS"            -> mostrarAprobadas();
@@ -106,12 +103,18 @@ public class Controlador implements ActionListener {
             return;
         }
 
+        if (codigo.length() < 3 || codigo.length() > 10) {
+            vista.mostrarError("El codigo debe tener entre 3 y 10 caracteres.");
+            return;
+        }
+
         try {
             int anio    = Integer.parseInt(anioStr);
             Materia mat = new Materia(nombre, codigo, cuatrimestre, anio);
-            estudiante.inscribirse(mat, 20); // 20 clases por defecto
+            estudiante.inscribirse(mat, 20);
             inscripcionDAO.guardar(estudiante.getMaterias());
             actualizarVista();
+            vista.limpiarFormulario();
         } catch (NumberFormatException ex) {
             vista.mostrarError("El anio debe ser un numero.");
         } catch (IllegalArgumentException ex) {
@@ -140,7 +143,11 @@ public class Controlador implements ActionListener {
         inscripcionDAO.guardar(estudiante.getMaterias());
 
         double porcentaje = ins.getPorcentajeAsistencia();
-        if (porcentaje >= 75 && porcentaje <= 85) {
+        if (porcentaje < 75) {
+            vista.mostrarError("Asistencia critica en " + ins.getMateria().getNombre()
+                    + ": " + String.format("%.1f%%", porcentaje)
+                    + " — Perdiste la regularidad por inasistencias.");
+        } else if (porcentaje >= 75 && porcentaje <= 85) {
             vista.mostrarAlertaAsistencia(ins.getMateria().getNombre(), porcentaje);
         }
 
@@ -188,18 +195,15 @@ public class Controlador implements ActionListener {
         String codigo = vista.getCodigoPendienteDeBaja();
         if (codigo == null) {
             vista.mostrarError("Seleccione una materia de la tabla.");
-            vista.mostrarConfirmacionBaja(false);
             return;
         }
 
         try {
             estudiante.darDeBaja(codigo);
             inscripcionDAO.guardar(estudiante.getMaterias());
-            vista.mostrarConfirmacionBaja(false); // vuelve a "BOTON" y limpia el codigo
             actualizarVista();
         } catch (IllegalArgumentException ex) {
             vista.mostrarError(ex.getMessage());
-            vista.mostrarConfirmacionBaja(false);
         }
     }
 

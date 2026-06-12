@@ -39,6 +39,10 @@ public class InscripcionMateria implements Evaluable {
         return notas;
     }
 
+    public void setClasesAsistidas(int clasesAsistidas) {
+        this.clasesAsistidas = clasesAsistidas;
+    }
+
     // -------------------------------------------------------
     //  Registrar asistencia
     // -------------------------------------------------------
@@ -55,8 +59,8 @@ public class InscripcionMateria implements Evaluable {
     public void agregarNota(double nota) {
         if (nota < 0 || nota > 10)
             throw new IllegalArgumentException("La nota debe estar entre 0 y 10.");
-        if (notas.size() >= 3)
-            throw new IllegalStateException("No se pueden agregar mas de 3 notas.");
+        if (notas.size() >= 5)
+            throw new IllegalStateException("No se pueden agregar mas de 5 notas.");
         notas.add(nota);
     }
 

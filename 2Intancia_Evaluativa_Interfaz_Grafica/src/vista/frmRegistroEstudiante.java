@@ -49,27 +49,9 @@ public class frmRegistroEstudiante extends JDialog {
 
         add(panel);
 
-        // La validacion basica de campos vacios queda aqui porque es
-        // responsabilidad de la vista impedir el cierre del dialogo.
-        // La logica de negocio (que hacer con los datos) sigue en el Controlador.
-        btnConfirmar.setActionCommand("CONFIRMAR_REGISTRO");
         btnConfirmar.addActionListener(e -> {
-            if (camposVacios()) {
-                JOptionPane.showMessageDialog(this, "Complete todos los campos.");
-                return;
-            }
-            setVisible(false); // cierra el dialogo y devuelve control al Controlador
+            setVisible(false);
         });
-    }
-
-    // -------------------------------------------------------
-    //  Validacion interna de la vista
-    // -------------------------------------------------------
-    private boolean camposVacios() {
-        return txtNombre.getText().trim().isEmpty()
-                || txtLegajo.getText().trim().isEmpty()
-                || txtCarrera.getText().trim().isEmpty()
-                || txtAnio.getText().trim().isEmpty();
     }
 
     // -------------------------------------------------------

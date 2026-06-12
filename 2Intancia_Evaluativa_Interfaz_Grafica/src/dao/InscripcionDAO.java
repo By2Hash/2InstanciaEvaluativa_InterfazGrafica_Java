@@ -83,12 +83,7 @@ public class InscripcionDAO {
             int clasesAsistidas = Integer.parseInt(partes[5]);
 
             InscripcionMateria ins = new InscripcionMateria(materia, totalClases);
-
-            // Restaurar asistencia real (el constructor la pone en totalClases)
-            int faltasARestaurar = totalClases - clasesAsistidas;
-            for (int i = 0; i < faltasARestaurar; i++) {
-                ins.registrarAsistencia(false);
-            }
+            ins.setClasesAsistidas(clasesAsistidas);
 
             // Restaurar notas
             if (partes.length > 6 && !partes[6].isBlank()) {
