@@ -111,6 +111,7 @@ Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanza
 La documentación de prompts utilizados está disponible en:
 
 - 📄 [Prompts de Bautista Pereiro](https://docs.google.com/document/d/19lqiD-Tn9syARZO47Xy8gbgD3hGGJpawiS4FDgW7oNI/edit?usp=drive_link)
+- 📄 [Prompts de Agustin Barrera](https://docs.google.com/document/d/1ZfBFpKX05xw_Irz0OnFNQyXHp7DVQg3kuyl8SqWwLzA/edit?usp=drive_link)
 
 Cada integrante tiene su propia carpeta `/docs/prompts/` con capturas de sus conversaciones.
 
