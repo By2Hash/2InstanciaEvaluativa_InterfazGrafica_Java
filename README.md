@@ -4,22 +4,37 @@
 
 **Integrantes:** Bautista Pereiro · Facundo Degani · Agustín Barrera
 
+---
+
+## 🎨 Diseño en Figma — Prototipo inicial
+
+> Las siguientes imágenes corresponden al prototipo visual diseñado en Figma antes de comenzar el desarrollo. No representan la interfaz final de la aplicación.
+
 <div align="center">
 
-<img width="480" alt="Mockup principal" src="https://github.com/user-attachments/assets/51a3c433-04d9-49b6-a7c8-1dcea6dffafe" />
+<img width="480" alt="Mockup principal - Figma" src="https://github.com/user-attachments/assets/51a3c433-04d9-49b6-a7c8-1dcea6dffafe" />
 &nbsp;&nbsp;&nbsp;
-<img width="480" alt="Vista de materias" src="https://github.com/user-attachments/assets/acb7941c-9c9c-4cd4-8b50-1aa9d17ea409" />
+<img width="480" alt="Vista de materias - Figma" src="https://github.com/user-attachments/assets/acb7941c-9c9c-4cd4-8b50-1aa9d17ea409" />
+
+</div>
+
+> *(Agregar link al archivo de Figma)*
+
+El diseño fue realizado antes de programar la interfaz, aplicando los principios de UX/UI vistos en clase: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
+
+---
+
+## 🖥️ Interfaz final — Aplicación real
+
+<div align="center">
+
+<img width="440" alt="Login - Registro de Estudiante" src="https://github.com/user-attachments/assets/8a34bc60-16e7-4b6f-83c8-66fdfbce5e27" />
+
+<img width="1000" alt="Ventana principal - Sistema de Autogestión" src="https://github.com/user-attachments/assets/7198e8fd-da94-42a8-8db2-53af9733bb56" />
 
 </div>
 
 ---
-
-diseño final <img width="1393" height="868" alt="image" src="https://github.com/user-attachments/assets/7198e8fd-da94-42a8-8db2-53af9733bb56" />
-
-login <img width="436" height="321" alt="image" src="https://github.com/user-attachments/assets/8a34bc60-16e7-4b6f-83c8-66fdfbce5e27" />
-
-prompt facundo degani : https://g.co/gemini/share/47a271efe5c8 
-https://g.co/gemini/share/df0181c9d892
 
 ## 📋 Descripción
 
@@ -125,17 +140,10 @@ Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanza
 | Integrante | Prompts |
 |---|---|
 | Bautista Pereiro | [Ver conversaciones](https://docs.google.com/document/d/19lqiD-Tn9syARZO47Xy8gbgD3hGGJpawiS4FDgW7oNI/edit?usp=drive_link) |
+| Facundo Degani | [Conversación 1](https://g.co/gemini/share/47a271efe5c8) · [Conversación 2](https://g.co/gemini/share/df0181c9d892) |
 | Agustín Barrera | [Ver conversaciones](https://docs.google.com/document/d/1ZfBFpKX05xw_Irz0OnFNQyXHp7DVQg3kuyl8SqWwLzA/edit?usp=drive_link) |
 
 Las capturas individuales de cada integrante están en la carpeta `/docs/prompts/` del repositorio.
-
----
-
-## 🎨 Diseño en Figma
-
-> *(Agregar link al archivo de Figma)*
-
-El diseño fue realizado antes de programar la interfaz, aplicando los principios de UX/UI vistos en clase: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
 
 ---
 
