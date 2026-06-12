@@ -2,6 +2,8 @@
 
 > 2° Instancia Evaluativa · Interfaz Gráfica · Java Swing + MVC + DAO
 
+Integrantes: Bautista Pereiro - Facundo Degani - Agustin Barrera
+
 <div align="center">
 
 <img width="480" alt="Mockup principal" src="https://github.com/user-attachments/assets/51a3c433-04d9-49b6-a7c8-1dcea6dffafe" />
@@ -124,6 +126,9 @@ Cada integrante tiene su propia carpeta `/docs/prompts/` con capturas de sus con
 El diseño fue realizado antes de programar la interfaz, siguiendo los principios de UX/UI: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
 
 ---
+
+video: https://drive.google.com/file/d/1z0AEp7Wm_o7B0FEsvhOPYQrNweLAAvCk/view?usp=drive_link
+
 
 ## ⚡ Desafíos encontrados
 
