@@ -82,6 +82,4 @@ public class Estudiante extends PersonaAcademica implements Consultable {
         System.out.println("|  Materias     : " + materias.size());
         System.out.println("----------------------------------------");
     }
-
-
 }

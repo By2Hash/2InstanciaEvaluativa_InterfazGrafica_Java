@@ -10,6 +10,7 @@ import vista.frmRegistroEstudiante;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.event.ListSelectionEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,14 +27,14 @@ public class Controlador implements ActionListener {
 
     public Controlador(VentanaPrincipal vista) {
         this.vista = vista;
-        this.estudianteDAO = new EstudianteDAO();
+        this.estudianteDAO  = new EstudianteDAO();
         this.inscripcionDAO = new InscripcionDAO();
 
         // Cargar o registrar estudiante
         this.estudiante = estudianteDAO.cargar();
         if (this.estudiante == null) {
             frmRegistroEstudiante registro = new frmRegistroEstudiante();
-            registro.setVisible(true); // bloquea hasta que el usuario confirme (modal)
+            registro.setVisible(true); // modal: bloquea hasta que el usuario confirme
             try {
                 this.estudiante = new Estudiante(
                         registro.getNombre(),
@@ -56,6 +57,14 @@ public class Controlador implements ActionListener {
 
         // Conectar listeners y mostrar estado inicial
         vista.registrarListeners(this);
+
+        // Listener de seleccion de tabla: actualiza metricas al hacer clic en una fila
+        vista.registrarSelectionListener((ListSelectionEvent e) -> {
+            if (!e.getValueIsAdjusting()) {
+                actualizarMetricas();
+            }
+        });
+
         actualizarVista();
     }
 
@@ -87,10 +96,10 @@ public class Controlador implements ActionListener {
     // ────────────────────────────────────────────────────────────
 
     private void inscribir() {
-        String nombre      = vista.getTxtInscNombre();
-        String codigo      = vista.getTxtInscCodigo();
-        String anioStr     = vista.getTxtInscAnio();
-        int cuatrimestre   = vista.getComboCuatrimestre();
+        String nombre    = vista.getTxtInscNombre();
+        String codigo    = vista.getTxtInscCodigo();
+        String anioStr   = vista.getTxtInscAnio();
+        int cuatrimestre = vista.getComboCuatrimestre();
 
         if (nombre.isEmpty() || codigo.isEmpty() || anioStr.isEmpty()) {
             vista.mostrarError("Complete todos los campos.");
@@ -98,9 +107,9 @@ public class Controlador implements ActionListener {
         }
 
         try {
-            int anio = Integer.parseInt(anioStr);
-            Materia materia = new Materia(nombre, codigo, cuatrimestre, anio);
-            estudiante.inscribirse(materia, 20); // 20 clases por defecto
+            int anio    = Integer.parseInt(anioStr);
+            Materia mat = new Materia(nombre, codigo, cuatrimestre, anio);
+            estudiante.inscribirse(mat, 20); // 20 clases por defecto
             inscripcionDAO.guardar(estudiante.getMaterias());
             actualizarVista();
         } catch (NumberFormatException ex) {
@@ -130,7 +139,6 @@ public class Controlador implements ActionListener {
         ins.registrarAsistencia(vista.isPresente());
         inscripcionDAO.guardar(estudiante.getMaterias());
 
-        // Alerta si la asistencia cae en zona critica
         double porcentaje = ins.getPorcentajeAsistencia();
         if (porcentaje >= 75 && porcentaje <= 85) {
             vista.mostrarAlertaAsistencia(ins.getMateria().getNombre(), porcentaje);
@@ -170,10 +178,14 @@ public class Controlador implements ActionListener {
 
     // ────────────────────────────────────────────────────────────
     //  DAR DE BAJA
+    //
+    //  FIX 2: usamos getCodigoPendienteDeBaja() en lugar de
+    //  getSelectedCodigo(), porque al momento de presionar "Aceptar"
+    //  la tabla ya puede haber perdido la seleccion.
     // ────────────────────────────────────────────────────────────
 
     private void confirmarBaja() {
-        String codigo = vista.getSelectedCodigo();
+        String codigo = vista.getCodigoPendienteDeBaja();
         if (codigo == null) {
             vista.mostrarError("Seleccione una materia de la tabla.");
             vista.mostrarConfirmacionBaja(false);
@@ -183,7 +195,7 @@ public class Controlador implements ActionListener {
         try {
             estudiante.darDeBaja(codigo);
             inscripcionDAO.guardar(estudiante.getMaterias());
-            vista.mostrarConfirmacionBaja(false);
+            vista.mostrarConfirmacionBaja(false); // vuelve a "BOTON" y limpia el codigo
             actualizarVista();
         } catch (IllegalArgumentException ex) {
             vista.mostrarError(ex.getMessage());
@@ -197,9 +209,9 @@ public class Controlador implements ActionListener {
 
     private void mostrarSituacionGeneral() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Estudiante : ").append(estudiante.getNombre()).append("\n");
-        sb.append("Legajo     : ").append(estudiante.getLegajo()).append("\n");
-        sb.append("Carrera    : ").append(estudiante.getCarrera()).append("\n");
+        sb.append("Estudiante  : ").append(estudiante.getNombre()).append("\n");
+        sb.append("Legajo      : ").append(estudiante.getLegajo()).append("\n");
+        sb.append("Carrera     : ").append(estudiante.getCarrera()).append("\n");
         sb.append("Anio ingreso: ").append(estudiante.getAnioIngreso()).append("\n");
         sb.append(String.format("Promedio general: %.2f\n", estudiante.getPromedioGeneral()));
         sb.append("Materias inscriptas: ").append(estudiante.getMaterias().size()).append("\n");
@@ -208,9 +220,8 @@ public class Controlador implements ActionListener {
         if (estudiante.getMaterias().isEmpty()) {
             sb.append("Sin materias inscriptas.");
         } else {
-            for (InscripcionMateria ins : estudiante.getMaterias()) {
+            for (InscripcionMateria ins : estudiante.getMaterias())
                 sb.append(ins.toString()).append("\n");
-            }
         }
 
         vista.mostrarInfo("Situacion General", sb.toString());
@@ -226,9 +237,8 @@ public class Controlador implements ActionListener {
         } else {
             sb.append("Materias con promedio menor a 4:\n");
             sb.append("─────────────────────────────────────\n");
-            for (InscripcionMateria ins : criticas) {
+            for (InscripcionMateria ins : criticas)
                 sb.append(ins.toString()).append("\n");
-            }
         }
 
         vista.mostrarInfo("Materias en Riesgo", sb.toString());
@@ -237,9 +247,8 @@ public class Controlador implements ActionListener {
 
     private void mostrarAprobadas() {
         List<InscripcionMateria> aprobadas = new ArrayList<>();
-        for (InscripcionMateria ins : estudiante.getMaterias()) {
+        for (InscripcionMateria ins : estudiante.getMaterias())
             if (ins.estaAprobada()) aprobadas.add(ins);
-        }
 
         StringBuilder sb = new StringBuilder();
         if (aprobadas.isEmpty()) {
@@ -247,9 +256,8 @@ public class Controlador implements ActionListener {
         } else {
             sb.append("Materias aprobadas:\n");
             sb.append("─────────────────────────────────────\n");
-            for (InscripcionMateria ins : aprobadas) {
+            for (InscripcionMateria ins : aprobadas)
                 sb.append(ins.toString()).append("\n");
-            }
         }
 
         vista.mostrarInfo("Materias Aprobadas", sb.toString());
@@ -261,14 +269,12 @@ public class Controlador implements ActionListener {
     // ────────────────────────────────────────────────────────────
 
     private void actualizarVista() {
-        // Perfil
         vista.setPerfil(
                 estudiante.getNombre(),
                 estudiante.getCarrera(),
                 String.valueOf(estudiante.getAnioIngreso())
         );
 
-        // Tabla y alertas
         List<String[]> filas   = new ArrayList<>();
         List<String>   alertas = new ArrayList<>();
 
@@ -286,27 +292,31 @@ public class Controlador implements ActionListener {
                     ins.getCondicion()
             });
 
-            if (asist >= 75 && asist < 85) {
+            if (asist >= 75 && asist < 85)
                 alertas.add(m.getNombre() + " - " + String.format("%.1f%%", asist));
-            }
         }
 
         vista.actualizarTabla(filas);
         vista.actualizarAlertas(alertas);
 
-        // Metricas de la fila seleccionada
+        actualizarMetricas();
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  ACTUALIZAR METRICAS (fila seleccionada en la tabla)
+    // ────────────────────────────────────────────────────────────
+
+    private void actualizarMetricas() {
         String codigoSel = vista.getSelectedCodigo();
-        if (codigoSel != null) {
-            InscripcionMateria ins = estudiante.getInscripcion(codigoSel);
-            if (ins != null) {
-                int presentes = ins.getClasesAsistidas();
-                int ausentes  = ins.getTotalClases() - ins.getClasesAsistidas();
-                vista.setClasesTotales(ins.getTotalClases());
-                vista.setAsistenciaStats(presentes, ausentes, ins.getPorcentajeAsistencia());
-                String historial = ins.getNotas().isEmpty() ? "—" : ins.getNotas().toString();
-                vista.setNotasHistorial(historial);
-                vista.setPromedio(ins.getPromedio());
-            }
-        }
+        if (codigoSel == null) return;
+        InscripcionMateria ins = estudiante.getInscripcion(codigoSel);
+        if (ins == null) return;
+        int presentes = ins.getClasesAsistidas();
+        int ausentes  = ins.getTotalClases() - ins.getClasesAsistidas();
+        vista.setClasesTotales(ins.getTotalClases());
+        vista.setAsistenciaStats(presentes, ausentes, ins.getPorcentajeAsistencia());
+        String historial = ins.getNotas().isEmpty() ? "—" : ins.getNotas().toString();
+        vista.setNotasHistorial(historial);
+        vista.setPromedio(ins.getPromedio());
     }
 }

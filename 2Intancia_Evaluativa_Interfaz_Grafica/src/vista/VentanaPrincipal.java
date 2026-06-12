@@ -7,6 +7,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import javax.swing.event.ListSelectionListener;
 import java.util.List;
 
 public class VentanaPrincipal extends JFrame {
@@ -18,7 +19,6 @@ public class VentanaPrincipal extends JFrame {
     private static final Color AZUL_PRIMARIO   = new Color(0, 0, 200);
     private static final Color FONDO_APP       = new Color(210, 210, 210);
     private static final Color FONDO_PANEL     = new Color(235, 235, 235);
-    private static final Color AMARILLO_ALERTA = new Color(255, 255, 190);
     private static final Color ROJO_BAJA       = new Color(180, 0, 0);
     private static final Color TEXTO_INVERSO   = Color.WHITE;
 
@@ -96,25 +96,35 @@ public class VentanaPrincipal extends JFrame {
 
     // ────────────────────────────────────────────────────────────
     //  COLUMNA DERECHA — ACCIONES / BAJA
+    //
+    //  FIX 1: usamos CardLayout interno en panelCardBaja para que
+    //  el area de "Baja" nunca colapse cuando alternamos vistas.
+    //  setVisible() sobre BoxLayout hijos colapsa el espacio;
+    //  CardLayout mantiene el tamaño maximo de ambas cartas.
+    //
+    //  FIX 2: guardamos codigoPendienteDeBaja en el momento en que
+    //  el usuario presiona "Dar de Baja", antes de que la tabla
+    //  pueda perder su seleccion al redibujar el panel.
     // ────────────────────────────────────────────────────────────
 
     private JButton btnDarDeBaja;
     private JPanel confirmacionBajaPanel;
     private JButton btnAceptarBaja;
     private JButton btnCancelarBaja;
+    private CardLayout cardBaja;
+    private JPanel panelCardBaja;
+
+    // Codigo guardado al presionar "Dar de Baja"
+    private String codigoPendienteDeBaja = null;
 
     // ────────────────────────────────────────────────────────────
-    //  CARDS
+    //  CARDS PRINCIPALES
     // ────────────────────────────────────────────────────────────
 
     private CardLayout cardLayout;
     private JPanel panelCards;
     private JPanel panelPrincipal;
     private JPanel panelReportes;
-
-    // ────────────────────────────────────────────────────────────
-    //  BOTON VOLVER (campo de instancia para poder registrar listener)
-    // ────────────────────────────────────────────────────────────
 
     private JButton btnVolver;
 
@@ -150,9 +160,9 @@ public class VentanaPrincipal extends JFrame {
         menuArchivo.add(itemCerrar);
 
         JMenu menuReportes = new JMenu("Reportes");
-        itemSituacion   = new JMenuItem("Situacion General");
-        itemRiesgo      = new JMenuItem("Materias en Riesgo");
-        itemAprobadas   = new JMenuItem("Aprobadas");
+        itemSituacion = new JMenuItem("Situacion General");
+        itemRiesgo    = new JMenuItem("Materias en Riesgo");
+        itemAprobadas = new JMenuItem("Aprobadas");
         menuReportes.add(itemSituacion);
         menuReportes.add(itemRiesgo);
         menuReportes.add(itemAprobadas);
@@ -168,30 +178,21 @@ public class VentanaPrincipal extends JFrame {
 
         // ── PERFIL DEL ESTUDIANTE ─────────────────────────
 
-        txtPerfilNombre      = new JTextField(15);
-        txtPerfilCarrera     = new JTextField(15);
-        txtPerfilAnioIngreso = new JTextField(15);
         Font compactFont = new Font("SansSerif", Font.PLAIN, 11);
-        txtPerfilNombre.setFont(compactFont);
-        txtPerfilCarrera.setFont(compactFont);
-        txtPerfilAnioIngreso.setFont(compactFont);
-
-        // Solo lectura — no se pueden editar desde la UI
+        txtPerfilNombre      = new JTextField(15); txtPerfilNombre.setFont(compactFont);
+        txtPerfilCarrera     = new JTextField(15); txtPerfilCarrera.setFont(compactFont);
+        txtPerfilAnioIngreso = new JTextField(15); txtPerfilAnioIngreso.setFont(compactFont);
         txtPerfilNombre.setEditable(false);
         txtPerfilCarrera.setEditable(false);
         txtPerfilAnioIngreso.setEditable(false);
 
         // ── INSCRIPCION A MATERIAS ────────────────────────
 
-        txtInscNombre = new JTextField(15);
-        txtInscCodigo = new JTextField(15);
+        txtInscNombre = new JTextField(15); txtInscNombre.setFont(compactFont);
+        txtInscCodigo = new JTextField(15); txtInscCodigo.setFont(compactFont);
         txtInscCodigo.setToolTipText("Codigo unico de 3 a 10 caracteres");
-        txtInscNombre.setFont(compactFont);
-        txtInscCodigo.setFont(compactFont);
-
         comboCuatrimestre = new JComboBox<>(new String[]{"1", "2"});
-        txtInscAnio = new JTextField(15);
-        txtInscAnio.setFont(compactFont);
+        txtInscAnio = new JTextField(15); txtInscAnio.setFont(compactFont);
 
         btnInscribir = new JButton("Inscribir");
         btnInscribir.setBackground(AZUL_PRIMARIO);
@@ -202,7 +203,7 @@ public class VentanaPrincipal extends JFrame {
         // ── ALERTAS DE INASISTENCIAS ──────────────────────
 
         modeloAlertas = new DefaultListModel<>();
-        listaAlertas = new JList<>(modeloAlertas);
+        listaAlertas  = new JList<>(modeloAlertas);
         listaAlertas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listaAlertas.setCellRenderer(new AlertaListCellRenderer());
         listaAlertas.setFixedCellHeight(18);
@@ -222,17 +223,13 @@ public class VentanaPrincipal extends JFrame {
         tabla.setFont(new Font("Monospaced", Font.PLAIN, 11));
         tabla.setRowMargin(2);
         tabla.setIntercellSpacing(new Dimension(5, 2));
-
-        JTableHeader header = tabla.getTableHeader();
-        header.setDefaultRenderer(new HeaderCustomRenderer());
+        tabla.getTableHeader().setDefaultRenderer(new HeaderCustomRenderer());
         tabla.setDefaultRenderer(Object.class, new CellCustomRenderer());
 
         // ── REGISTRAR ASISTENCIAS ─────────────────────────
 
-        rbPresente = new JRadioButton("Presente", true);
-        rbAusente  = new JRadioButton("Ausente");
-        rbPresente.setFont(compactFont);
-        rbAusente.setFont(compactFont);
+        rbPresente = new JRadioButton("Presente", true); rbPresente.setFont(compactFont);
+        rbAusente  = new JRadioButton("Ausente");        rbAusente.setFont(compactFont);
         ButtonGroup grupoAsistencia = new ButtonGroup();
         grupoAsistencia.add(rbPresente);
         grupoAsistencia.add(rbAusente);
@@ -240,28 +237,20 @@ public class VentanaPrincipal extends JFrame {
 
         // ── REGISTRAR NOTA ────────────────────────────────
 
-        txtNota = new JTextField(5);
-        txtNota.setFont(compactFont);
+        txtNota = new JTextField(5); txtNota.setFont(compactFont);
         btnNotaAgregada = new JButton("Nota Agregada");
 
         // ── DATOS Y METRICAS ──────────────────────────────
 
-        lblClasesTotales        = new JLabel("Clases Totales: 0");
-        lblPresentes            = new JLabel("Presentes: 0");
-        lblAusentes             = new JLabel("Ausentes: 0");
-        lblPorcentajeAsistencia = new JLabel("Asistencia: 0 %");
-        lblHistorialNotas       = new JLabel("Historial Notas: \u2014");
-        lblPromedio             = new JLabel("Promedio: \u2014");
-
         Font labelFont = new Font("SansSerif", Font.PLAIN, 11);
-        lblClasesTotales.setFont(labelFont);
-        lblPresentes.setFont(labelFont);
-        lblAusentes.setFont(labelFont);
-        lblPorcentajeAsistencia.setFont(labelFont);
-        lblHistorialNotas.setFont(labelFont);
-        lblPromedio.setFont(labelFont);
+        lblClasesTotales        = new JLabel("Clases Totales: 0");      lblClasesTotales.setFont(labelFont);
+        lblPresentes            = new JLabel("Presentes: 0");            lblPresentes.setFont(labelFont);
+        lblAusentes             = new JLabel("Ausentes: 0");             lblAusentes.setFont(labelFont);
+        lblPorcentajeAsistencia = new JLabel("Asistencia: 0 %");        lblPorcentajeAsistencia.setFont(labelFont);
+        lblHistorialNotas       = new JLabel("Historial Notas: \u2014"); lblHistorialNotas.setFont(labelFont);
+        lblPromedio             = new JLabel("Promedio: \u2014");        lblPromedio.setFont(labelFont);
 
-        // ── DAR DE BAJA ───────────────────────────────────
+        // ── DAR DE BAJA (FIX 1 + FIX 2) ─────────────────
 
         btnDarDeBaja = new JButton("Dar de Baja");
         btnDarDeBaja.setBackground(ROJO_BAJA);
@@ -277,13 +266,30 @@ public class VentanaPrincipal extends JFrame {
         confirmacionBajaPanel.add(new JLabel("Confirma la baja?"));
         confirmacionBajaPanel.add(btnAceptarBaja);
         confirmacionBajaPanel.add(btnCancelarBaja);
-        confirmacionBajaPanel.setVisible(false);
+
+        // FIX 1: usamos CardLayout con preferredSize explicito para que
+        // BoxLayout nunca colapse el contenedor al alternar cartas.
+        cardBaja = new CardLayout();
+        panelCardBaja = new JPanel(cardBaja);
+        panelCardBaja.setBackground(FONDO_PANEL);
+        // Tamaño fijo: ancho suficiente para el panel de confirmacion
+        // (label + 2 botones) y alto de un boton estandar
+        panelCardBaja.setPreferredSize(new Dimension(240, 30));
+        panelCardBaja.setMaximumSize(new Dimension(240, 30));
+
+        JPanel wrapBoton = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        wrapBoton.setBackground(FONDO_PANEL);
+        wrapBoton.add(btnDarDeBaja);
+
+        panelCardBaja.add(wrapBoton,             "BOTON");
+        panelCardBaja.add(confirmacionBajaPanel, "CONFIRMACION");
+        cardBaja.show(panelCardBaja, "BOTON");
 
         // ── BOTON VOLVER ──────────────────────────────────
 
         btnVolver = new JButton("Volver al panel principal");
 
-        // ── SISTEMA DE CARDS ──────────────────────────────
+        // ── SISTEMA DE CARDS PRINCIPAL ────────────────────
 
         cardLayout = new CardLayout();
         panelCards = new JPanel(cardLayout);
@@ -305,74 +311,52 @@ public class VentanaPrincipal extends JFrame {
         panelIzquierdo.setPreferredSize(new Dimension(320, 640));
         panelIzquierdo.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
+        Font lblFont = new Font("SansSerif", Font.PLAIN, 11);
+
         // -- PERFIL DEL ESTUDIANTE --
         JPanel perfilPanel = new JPanel(new GridBagLayout());
         perfilPanel.setBackground(FONDO_PANEL);
-        perfilPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
-                "Perfil del Estudiante",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 10)
-        ));
-
-        GridBagConstraints gbcP = new GridBagConstraints();
-        gbcP.fill = GridBagConstraints.HORIZONTAL;
-        gbcP.insets = new Insets(3, 4, 3, 4);
-        Font lblFont = new Font("SansSerif", Font.PLAIN, 11);
+        perfilPanel.setBorder(titledBorder("Perfil del Estudiante"));
+        GridBagConstraints gbcP = hgbc();
 
         gbcP.gridx = 0; gbcP.gridy = 0; gbcP.weightx = 0;
-        JLabel l1 = new JLabel("Nombre:"); l1.setFont(lblFont);
-        perfilPanel.add(l1, gbcP);
+        perfilPanel.add(label("Nombre:", lblFont), gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilNombre, gbcP);
 
         gbcP.gridx = 0; gbcP.gridy = 1; gbcP.weightx = 0;
-        JLabel l2 = new JLabel("Carrera:"); l2.setFont(lblFont);
-        perfilPanel.add(l2, gbcP);
+        perfilPanel.add(label("Carrera:", lblFont), gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilCarrera, gbcP);
 
         gbcP.gridx = 0; gbcP.gridy = 2; gbcP.weightx = 0;
-        JLabel l3 = new JLabel("Anio Ingreso:"); l3.setFont(lblFont);
-        perfilPanel.add(l3, gbcP);
+        perfilPanel.add(label("Anio Ingreso:", lblFont), gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilAnioIngreso, gbcP);
 
         // -- INSCRIPCION A MATERIAS --
         JPanel inscripcionPanel = new JPanel(new GridBagLayout());
         inscripcionPanel.setBackground(FONDO_PANEL);
-        inscripcionPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
-                "Inscripcion a materias",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 10)
-        ));
-
-        GridBagConstraints gbcI = new GridBagConstraints();
-        gbcI.fill = GridBagConstraints.HORIZONTAL;
-        gbcI.insets = new Insets(3, 4, 3, 4);
+        inscripcionPanel.setBorder(titledBorder("Inscripcion a materias"));
+        GridBagConstraints gbcI = hgbc();
 
         gbcI.gridx = 0; gbcI.gridy = 0; gbcI.weightx = 0;
-        JLabel i1 = new JLabel("Nombre:"); i1.setFont(lblFont);
-        inscripcionPanel.add(i1, gbcI);
+        inscripcionPanel.add(label("Nombre:", lblFont), gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscNombre, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 1; gbcI.weightx = 0;
-        JLabel i2 = new JLabel("Codigo (unico):"); i2.setFont(lblFont);
-        inscripcionPanel.add(i2, gbcI);
+        inscripcionPanel.add(label("Codigo (unico):", lblFont), gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscCodigo, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 2; gbcI.weightx = 0;
-        JLabel i3 = new JLabel("Cuatrimestre:"); i3.setFont(lblFont);
-        inscripcionPanel.add(i3, gbcI);
+        inscripcionPanel.add(label("Cuatrimestre:", lblFont), gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(comboCuatrimestre, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 3; gbcI.weightx = 0;
-        JLabel i4 = new JLabel("Anio:"); i4.setFont(lblFont);
-        inscripcionPanel.add(i4, gbcI);
+        inscripcionPanel.add(label("Anio:", lblFont), gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscAnio, gbcI);
 
@@ -386,12 +370,7 @@ public class VentanaPrincipal extends JFrame {
         // -- ALERTAS DE INASISTENCIAS --
         JScrollPane scrollAlertas = new JScrollPane(listaAlertas);
         scrollAlertas.setPreferredSize(new Dimension(0, 110));
-        scrollAlertas.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
-                "Alertas de Inasistencias (75% - 85%)",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 10)
-        ));
+        scrollAlertas.setBorder(titledBorder("Alertas de Inasistencias (75% - 85%)"));
 
         panelIzquierdo.add(perfilPanel);
         panelIzquierdo.add(Box.createVerticalStrut(8));
@@ -400,32 +379,24 @@ public class VentanaPrincipal extends JFrame {
         panelIzquierdo.add(scrollAlertas);
         panelIzquierdo.add(Box.createVerticalGlue());
 
-        // ── COLUMNA DERECHA (704px) ───────────────────────
+        // ── COLUMNA DERECHA ───────────────────────────────
 
         panelPrincipal = new JPanel(new BorderLayout(6, 6));
         panelPrincipal.setBackground(FONDO_APP);
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
-        // -- TABLA CON LAS MATERIAS --
         JScrollPane scrollTabla = new JScrollPane(tabla);
-        scrollTabla.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
-                "Tabla con las materias",
-                TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 10)
-        ));
+        scrollTabla.setBorder(titledBorder("Tabla con las materias"));
 
-        // -- ACCIONES (CONTENEDOR INFERIOR) --
-        JPanel panelAcciones = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 6));
+        // -- ACCIONES --
+        JPanel panelAcciones = new JPanel(new GridLayout(1, 4, 8, 0));
         panelAcciones.setBackground(FONDO_PANEL);
         panelAcciones.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.DARK_GRAY),
-                "Acciones",
+                BorderFactory.createLineBorder(Color.DARK_GRAY), "Acciones",
                 TitledBorder.LEFT, TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 11)
-        ));
+                new Font("SansSerif", Font.BOLD, 11)));
 
-        // Subpanel Registrar Asistencias
+        // Subpanel Asistencias
         JPanel subAsistencia = new JPanel();
         subAsistencia.setLayout(new BoxLayout(subAsistencia, BoxLayout.Y_AXIS));
         subAsistencia.setBackground(FONDO_PANEL);
@@ -435,7 +406,7 @@ public class VentanaPrincipal extends JFrame {
         subAsistencia.add(Box.createVerticalStrut(4));
         subAsistencia.add(btnRegistrarAsistencia);
 
-        // Subpanel Registrar Nota
+        // Subpanel Nota
         JPanel subNota = new JPanel();
         subNota.setLayout(new BoxLayout(subNota, BoxLayout.Y_AXIS));
         subNota.setBackground(FONDO_PANEL);
@@ -448,7 +419,7 @@ public class VentanaPrincipal extends JFrame {
         subNota.add(Box.createVerticalStrut(4));
         subNota.add(btnNotaAgregada);
 
-        // Subpanel Datos y Metricas
+        // Subpanel Metricas
         JPanel subDatos = new JPanel();
         subDatos.setLayout(new BoxLayout(subDatos, BoxLayout.Y_AXIS));
         subDatos.setBackground(FONDO_PANEL);
@@ -460,14 +431,12 @@ public class VentanaPrincipal extends JFrame {
         subDatos.add(lblHistorialNotas);
         subDatos.add(lblPromedio);
 
-        // Subpanel Dar de Baja
+        // Subpanel Baja — FIX 1: panelCardBaja en lugar de BoxLayout con setVisible
         JPanel subBaja = new JPanel();
         subBaja.setLayout(new BoxLayout(subBaja, BoxLayout.Y_AXIS));
         subBaja.setBackground(FONDO_PANEL);
         subBaja.setBorder(BorderFactory.createTitledBorder("Baja"));
-        subBaja.add(btnDarDeBaja);
-        subBaja.add(Box.createVerticalStrut(6));
-        subBaja.add(confirmacionBajaPanel);
+        subBaja.add(panelCardBaja);
 
         panelAcciones.add(subAsistencia);
         panelAcciones.add(subNota);
@@ -482,13 +451,9 @@ public class VentanaPrincipal extends JFrame {
         panelReportes = new JPanel(new BorderLayout());
         panelReportes.setBackground(FONDO_APP);
         panelReportes.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-
-        JLabel lblReporte = new JLabel(
-                "Seleccione un reporte del menu Reportes",
-                SwingConstants.CENTER);
+        JLabel lblReporte = new JLabel("Seleccione un reporte del menu Reportes", SwingConstants.CENTER);
         lblReporte.setFont(new Font("SansSerif", Font.PLAIN, 16));
         panelReportes.add(lblReporte, BorderLayout.CENTER);
-
         JPanel panelVolver = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelVolver.setBackground(FONDO_APP);
         panelVolver.add(btnVolver);
@@ -497,58 +462,74 @@ public class VentanaPrincipal extends JFrame {
         // ── ENSAMBLAR CARDS ───────────────────────────────
 
         panelCards.add(panelPrincipal, "PRINCIPAL");
-        panelCards.add(panelReportes, "REPORTES");
+        panelCards.add(panelReportes,  "REPORTES");
 
         this.add(panelIzquierdo, BorderLayout.WEST);
-        this.add(panelCards, BorderLayout.CENTER);
+        this.add(panelCards,     BorderLayout.CENTER);
+    }
+
+    // ────────────────────────────────────────────────────────────
+    //  HELPERS PRIVADOS DE LAYOUT
+    // ────────────────────────────────────────────────────────────
+
+    private static javax.swing.border.Border titledBorder(String titulo) {
+        return BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(Color.DARK_GRAY), titulo,
+                TitledBorder.LEFT, TitledBorder.TOP,
+                new Font("SansSerif", Font.BOLD, 10));
+    }
+
+    private static GridBagConstraints hgbc() {
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.HORIZONTAL;
+        g.insets = new Insets(3, 4, 3, 4);
+        return g;
+    }
+
+    private static JLabel label(String text, Font f) {
+        JLabel l = new JLabel(text);
+        l.setFont(f);
+        return l;
     }
 
     // ────────────────────────────────────────────────────────────
     //  API PUBLICA — REGISTRO DE LISTENERS
     // ────────────────────────────────────────────────────────────
 
+    public void registrarSelectionListener(ListSelectionListener sl) {
+        tabla.getSelectionModel().addListSelectionListener(sl);
+    }
+
     public void registrarListeners(ActionListener al) {
-        itemCerrar.setActionCommand("CERRAR");
-        itemCerrar.addActionListener(al);
+        itemCerrar.setActionCommand("CERRAR");             itemCerrar.addActionListener(al);
+        itemSituacion.setActionCommand("SITUACION_GENERAL"); itemSituacion.addActionListener(al);
+        itemRiesgo.setActionCommand("MATERIAS_EN_RIESGO"); itemRiesgo.addActionListener(al);
+        itemAprobadas.setActionCommand("APROBADAS");       itemAprobadas.addActionListener(al);
+        itemAcercaDe.setActionCommand("ACERCA_DE");        itemAcercaDe.addActionListener(al);
 
-        itemSituacion.setActionCommand("SITUACION_GENERAL");
-        itemSituacion.addActionListener(al);
-
-        itemRiesgo.setActionCommand("MATERIAS_EN_RIESGO");
-        itemRiesgo.addActionListener(al);
-
-        itemAprobadas.setActionCommand("APROBADAS");
-        itemAprobadas.addActionListener(al);
-
-        itemAcercaDe.setActionCommand("ACERCA_DE");
-        itemAcercaDe.addActionListener(al);
-
-        btnInscribir.setActionCommand("INSCRIBIR");
-        btnInscribir.addActionListener(al);
+        btnInscribir.setActionCommand("INSCRIBIR");        btnInscribir.addActionListener(al);
 
         btnRegistrarAsistencia.setActionCommand("REGISTRAR_ASISTENCIA");
         btnRegistrarAsistencia.addActionListener(al);
 
-        rbPresente.setActionCommand("PRESENTE");
-        rbPresente.addActionListener(al);
+        rbPresente.setActionCommand("PRESENTE"); rbPresente.addActionListener(al);
+        rbAusente.setActionCommand("AUSENTE");   rbAusente.addActionListener(al);
 
-        rbAusente.setActionCommand("AUSENTE");
-        rbAusente.addActionListener(al);
+        btnNotaAgregada.setActionCommand("NOTA_AGREGADA"); btnNotaAgregada.addActionListener(al);
 
-        btnNotaAgregada.setActionCommand("NOTA_AGREGADA");
-        btnNotaAgregada.addActionListener(al);
+        // FIX 2: al presionar "Dar de Baja" guardamos el codigo ANTES
+        // de mostrar el panel de confirmacion, porque al redibujar la
+        // interfaz la tabla puede perder su seleccion
+        btnDarDeBaja.addActionListener(e -> {
+            codigoPendienteDeBaja = getSelectedCodigo();
+            al.actionPerformed(new java.awt.event.ActionEvent(
+                    btnDarDeBaja, java.awt.event.ActionEvent.ACTION_PERFORMED, "BAJA"));
+        });
 
-        btnDarDeBaja.setActionCommand("BAJA");
-        btnDarDeBaja.addActionListener(al);
+        btnAceptarBaja.setActionCommand("CONFIRMAR_BAJA");  btnAceptarBaja.addActionListener(al);
+        btnCancelarBaja.setActionCommand("CANCELAR_BAJA");  btnCancelarBaja.addActionListener(al);
 
-        btnAceptarBaja.setActionCommand("CONFIRMAR_BAJA");
-        btnAceptarBaja.addActionListener(al);
-
-        btnCancelarBaja.setActionCommand("CANCELAR_BAJA");
-        btnCancelarBaja.addActionListener(al);
-
-        btnVolver.setActionCommand("VOLVER_PRINCIPAL");
-        btnVolver.addActionListener(al);
+        btnVolver.setActionCommand("VOLVER_PRINCIPAL");     btnVolver.addActionListener(al);
     }
 
     // ────────────────────────────────────────────────────────────
@@ -573,6 +554,19 @@ public class VentanaPrincipal extends JFrame {
         Object val = modeloTabla.getValueAt(fila, 0);
         if (val == null || val.toString().equals("\u2014")) return null;
         return val.toString();
+    }
+
+    /**
+     * FIX 2: el controlador llama este metodo en confirmarBaja()
+     * en lugar de getSelectedCodigo(), porque al momento de confirmar
+     * la tabla ya puede no tener fila seleccionada.
+     */
+    public String getCodigoPendienteDeBaja() {
+        return codigoPendienteDeBaja;
+    }
+
+    public void limpiarCodigoPendienteDeBaja() {
+        codigoPendienteDeBaja = null;
     }
 
     // ────────────────────────────────────────────────────────────
@@ -602,9 +596,7 @@ public class VentanaPrincipal extends JFrame {
         for (String item : items) modeloAlertas.addElement(item);
     }
 
-    public void setClasesTotales(int total) {
-        lblClasesTotales.setText("Clases Totales: " + total);
-    }
+    public void setClasesTotales(int total) { lblClasesTotales.setText("Clases Totales: " + total); }
 
     public void setAsistenciaStats(int presentes, int ausentes, double porcentaje) {
         lblPresentes.setText("Presentes: " + presentes);
@@ -612,13 +604,8 @@ public class VentanaPrincipal extends JFrame {
         lblPorcentajeAsistencia.setText(String.format("Asistencia: %.1f %%", porcentaje));
     }
 
-    public void setNotasHistorial(String historial) {
-        lblHistorialNotas.setText("Historial Notas: " + historial);
-    }
-
-    public void setPromedio(double promedio) {
-        lblPromedio.setText(String.format("Promedio: %.2f", promedio));
-    }
+    public void setNotasHistorial(String historial) { lblHistorialNotas.setText("Historial Notas: " + historial); }
+    public void setPromedio(double promedio)         { lblPromedio.setText(String.format("Promedio: %.2f", promedio)); }
 
     // ────────────────────────────────────────────────────────────
     //  API PUBLICA — NAVEGACION CARDS
@@ -627,11 +614,12 @@ public class VentanaPrincipal extends JFrame {
     public void mostrarPanelPrincipal() { cardLayout.show(panelCards, "PRINCIPAL"); }
     public void mostrarPanelReportes()  { cardLayout.show(panelCards, "REPORTES"); }
 
+    /**
+     * FIX 1: CardLayout interno — nunca colapsa el area de Baja.
+     */
     public void mostrarConfirmacionBaja(boolean mostrar) {
-        btnDarDeBaja.setVisible(!mostrar);
-        confirmacionBajaPanel.setVisible(mostrar);
-        confirmacionBajaPanel.getParent().revalidate();
-        confirmacionBajaPanel.getParent().repaint();
+        cardBaja.show(panelCardBaja, mostrar ? "CONFIRMACION" : "BOTON");
+        if (!mostrar) limpiarCodigoPendienteDeBaja();
     }
 
     // ────────────────────────────────────────────────────────────
@@ -643,14 +631,10 @@ public class VentanaPrincipal extends JFrame {
     }
 
     public void mostrarAlertaAsistencia(String materia, double porcentaje) {
-        JOptionPane.showMessageDialog(
-                this,
+        JOptionPane.showMessageDialog(this,
                 "Asistencia critica en " + materia + ": " +
-                        String.format("%.1f%%", porcentaje) +
-                        "\nRiesgo de perder la regularidad.",
-                "Alerta de Asistencia",
-                JOptionPane.WARNING_MESSAGE
-        );
+                        String.format("%.1f%%", porcentaje) + "\nRiesgo de perder la regularidad.",
+                "Alerta de Asistencia", JOptionPane.WARNING_MESSAGE);
     }
 
     public void mostrarInfo(String titulo, String mensaje) {
@@ -658,15 +642,12 @@ public class VentanaPrincipal extends JFrame {
     }
 
     public int mostrarConfirmacion(String mensaje) {
-        return JOptionPane.showConfirmDialog(
-                this, mensaje, "Confirmacion",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.WARNING_MESSAGE
-        );
+        return JOptionPane.showConfirmDialog(this, mensaje, "Confirmacion",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
     }
 
     // ────────────────────────────────────────────────────────────
-    //  RENDERERS ESTATICOS INTERNOS
+    //  RENDERERS INTERNOS
     // ────────────────────────────────────────────────────────────
 
     private static class HeaderCustomRenderer extends DefaultTableCellRenderer {
@@ -677,8 +658,7 @@ public class VentanaPrincipal extends JFrame {
             setFont(new Font("SansSerif", Font.BOLD, 11));
             setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(new Color(0, 0, 150), 1),
-                    BorderFactory.createEmptyBorder(4, 6, 4, 6)
-            ));
+                    BorderFactory.createEmptyBorder(4, 6, 4, 6)));
         }
     }
 
@@ -706,12 +686,6 @@ public class VentanaPrincipal extends JFrame {
     }
 
     private static class AlertaListCellRenderer extends DefaultListCellRenderer {
-        public AlertaListCellRenderer() {
-            setOpaque(true);
-            setBackground(new Color(255, 255, 190));
-            setFont(new Font("SansSerif", Font.BOLD, 11));
-        }
-
         @Override
         public Component getListCellRendererComponent(
                 JList<?> list, Object value, int index,

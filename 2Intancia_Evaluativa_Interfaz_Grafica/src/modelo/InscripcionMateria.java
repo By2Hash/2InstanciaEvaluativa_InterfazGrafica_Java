@@ -44,19 +44,18 @@ public class InscripcionMateria implements Evaluable {
     // -------------------------------------------------------
     public void registrarAsistencia(boolean presente) {
         if (!presente) {
-            // solo descuenta si faltó, no incrementa totalClases
             if (clasesAsistidas > 0) clasesAsistidas--;
         }
         // si presente == true, no hace nada (ya tiene asistencia perfecta)
     }
 
     // -------------------------------------------------------
-    //  Agregar nota con validación 0-10
+    //  Agregar nota con validacion 0-10
     // -------------------------------------------------------
     public void agregarNota(double nota) {
         if (nota < 0 || nota > 10)
             throw new IllegalArgumentException("La nota debe estar entre 0 y 10.");
-        if (notas.size() >= 3)  // límite cambiado a 3
+        if (notas.size() >= 3)
             throw new IllegalStateException("No se pueden agregar mas de 3 notas.");
         notas.add(nota);
     }
@@ -65,15 +64,32 @@ public class InscripcionMateria implements Evaluable {
     //  Porcentaje de asistencia
     // -------------------------------------------------------
     public double getPorcentajeAsistencia() {
-        if (totalClases == 0) return 100; // sin clases = regular por defecto
+        if (totalClases == 0) return 100;
         return (clasesAsistidas * 100.0) / totalClases;
     }
+
     // -------------------------------------------------------
-    //  Implementación de Evaluable
+    //  Implementacion de Evaluable
     // -------------------------------------------------------
+
+    /**
+     * FIX: la condicion ahora tiene en cuenta TANTO la asistencia
+     * como el promedio de notas.
+     *
+     * Reglas:
+     *   - Si asistencia < 75%  → Libre (por inasistencias)
+     *   - Si tiene las 3 notas cargadas y el promedio < 4 → Libre (por promedio)
+     *   - En cualquier otro caso → Regular
+     */
     @Override
     public String getCondicion() {
-        return getPorcentajeAsistencia() >= 75 ? "Regular" : "Libre";
+        if (getPorcentajeAsistencia() < 75) {
+            return "Libre";
+        }
+        if (notas.size() == 3 && getPromedio() < 4) {
+            return "Libre";
+        }
+        return "Regular";
     }
 
     @Override
@@ -88,13 +104,17 @@ public class InscripcionMateria implements Evaluable {
 
     @Override
     public boolean estaAprobada() {
+        // Exige promedio >= 6 Y condicion Regular (asistencia >= 75% y promedio >= 4)
         return getPromedio() >= 6 && getCondicion().equals("Regular");
     }
-    
+
+    // -------------------------------------------------------
+    //  Serializacion
+    // -------------------------------------------------------
     public String toTexto() {
         String notasStr = notas.stream()
-        .map(String::valueOf)
-        .collect(java.util.stream.Collectors.joining(","));
+                .map(String::valueOf)
+                .collect(java.util.stream.Collectors.joining(","));
         return materia.toTexto() + ";" + totalClases + ";" + clasesAsistidas + ";" + notasStr;
     }
 
@@ -103,7 +123,7 @@ public class InscripcionMateria implements Evaluable {
     // -------------------------------------------------------
     @Override
     public String toString() {
-        return String.format("%s | Condición: %-8s | Promedio: %.2f | Asistencia: %.1f%%",
+        return String.format("%s | Condicion: %-8s | Promedio: %.2f | Asistencia: %.1f%%",
                 materia.toString(),
                 getCondicion(),
                 getPromedio(),

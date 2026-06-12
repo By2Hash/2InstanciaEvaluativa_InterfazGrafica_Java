@@ -32,7 +32,7 @@ public class frmRegistroEstudiante extends JDialog {
         txtAnio    = new JTextField(15); txtAnio.setFont(f);
         btnConfirmar = new JButton("Confirmar");
 
-        String[] labels = {"Nombre:", "Legajo:", "Carrera:", "Año ingreso:"};
+        String[] labels = {"Nombre:", "Legajo:", "Carrera:", "Anio ingreso:"};
         JTextField[] fields = {txtNombre, txtLegajo, txtCarrera, txtAnio};
 
         for (int i = 0; i < labels.length; i++) {
@@ -49,24 +49,41 @@ public class frmRegistroEstudiante extends JDialog {
 
         add(panel);
 
+        // La validacion basica de campos vacios queda aqui porque es
+        // responsabilidad de la vista impedir el cierre del dialogo.
+        // La logica de negocio (que hacer con los datos) sigue en el Controlador.
         btnConfirmar.setActionCommand("CONFIRMAR_REGISTRO");
         btnConfirmar.addActionListener(e -> {
-            if (txtNombre.getText().trim().isEmpty() ||
-                    txtLegajo.getText().trim().isEmpty()  ||
-                    txtCarrera.getText().trim().isEmpty()  ||
-                    txtAnio.getText().trim().isEmpty()) {
+            if (camposVacios()) {
                 JOptionPane.showMessageDialog(this, "Complete todos los campos.");
                 return;
             }
-            setVisible(false);
+            setVisible(false); // cierra el dialogo y devuelve control al Controlador
         });
     }
 
+    // -------------------------------------------------------
+    //  Validacion interna de la vista
+    // -------------------------------------------------------
+    private boolean camposVacios() {
+        return txtNombre.getText().trim().isEmpty()
+                || txtLegajo.getText().trim().isEmpty()
+                || txtCarrera.getText().trim().isEmpty()
+                || txtAnio.getText().trim().isEmpty();
+    }
+
+    // -------------------------------------------------------
+    //  Getters para que el Controlador lea los datos
+    // -------------------------------------------------------
     public String getNombre()  { return txtNombre.getText().trim(); }
     public String getLegajo()  { return txtLegajo.getText().trim(); }
     public String getCarrera() { return txtCarrera.getText().trim(); }
     public String getTxtAnio() { return txtAnio.getText().trim(); }
 
+    // -------------------------------------------------------
+    //  Permite al Controlador agregar listeners adicionales
+    //  (por ejemplo, para validaciones de negocio mas complejas)
+    // -------------------------------------------------------
     public void registrarListener(ActionListener al) {
         btnConfirmar.addActionListener(al);
     }
