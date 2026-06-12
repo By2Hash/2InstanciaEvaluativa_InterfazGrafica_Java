@@ -62,8 +62,8 @@ public class VentanaPrincipal extends JFrame {
     // ────────────────────────────────────────────────────────────
 
     private static final String[] COLUMNAS = {
-        "Codigo", "Nombre", "Cuatrimestre", "Anio",
-        "Asistencia %", "Promedio", "Condicion"
+            "Codigo", "Nombre", "Cuatrimestre", "Anio",
+            "Asistencia %", "Promedio", "Condicion"
     };
     private DefaultTableModel modeloTabla;
     private JTable tabla;
@@ -113,6 +113,12 @@ public class VentanaPrincipal extends JFrame {
     private JPanel panelReportes;
 
     // ────────────────────────────────────────────────────────────
+    //  BOTON VOLVER (campo de instancia para poder registrar listener)
+    // ────────────────────────────────────────────────────────────
+
+    private JButton btnVolver;
+
+    // ────────────────────────────────────────────────────────────
     //  CONSTRUCTOR
     // ────────────────────────────────────────────────────────────
 
@@ -127,10 +133,6 @@ public class VentanaPrincipal extends JFrame {
 
         initComponentes();
         initLayouts();
-    }
-
-    public boolean isPresente() {
-        return rbPresente.isSelected();
     }
 
     // ────────────────────────────────────────────────────────────
@@ -166,13 +168,18 @@ public class VentanaPrincipal extends JFrame {
 
         // ── PERFIL DEL ESTUDIANTE ─────────────────────────
 
-        txtPerfilNombre    = new JTextField(15);
-        txtPerfilCarrera   = new JTextField(15);
+        txtPerfilNombre      = new JTextField(15);
+        txtPerfilCarrera     = new JTextField(15);
         txtPerfilAnioIngreso = new JTextField(15);
         Font compactFont = new Font("SansSerif", Font.PLAIN, 11);
         txtPerfilNombre.setFont(compactFont);
         txtPerfilCarrera.setFont(compactFont);
         txtPerfilAnioIngreso.setFont(compactFont);
+
+        // Solo lectura — no se pueden editar desde la UI
+        txtPerfilNombre.setEditable(false);
+        txtPerfilCarrera.setEditable(false);
+        txtPerfilAnioIngreso.setEditable(false);
 
         // ── INSCRIPCION A MATERIAS ────────────────────────
 
@@ -218,7 +225,6 @@ public class VentanaPrincipal extends JFrame {
 
         JTableHeader header = tabla.getTableHeader();
         header.setDefaultRenderer(new HeaderCustomRenderer());
-
         tabla.setDefaultRenderer(Object.class, new CellCustomRenderer());
 
         // ── REGISTRAR ASISTENCIAS ─────────────────────────
@@ -240,12 +246,12 @@ public class VentanaPrincipal extends JFrame {
 
         // ── DATOS Y METRICAS ──────────────────────────────
 
-        lblClasesTotales       = new JLabel("Clases Totales: 0");
-        lblPresentes           = new JLabel("Presentes: 0");
-        lblAusentes            = new JLabel("Ausentes: 0");
+        lblClasesTotales        = new JLabel("Clases Totales: 0");
+        lblPresentes            = new JLabel("Presentes: 0");
+        lblAusentes             = new JLabel("Ausentes: 0");
         lblPorcentajeAsistencia = new JLabel("Asistencia: 0 %");
-        lblHistorialNotas      = new JLabel("Historial Notas: \u2014");
-        lblPromedio            = new JLabel("Promedio: \u2014");
+        lblHistorialNotas       = new JLabel("Historial Notas: \u2014");
+        lblPromedio             = new JLabel("Promedio: \u2014");
 
         Font labelFont = new Font("SansSerif", Font.PLAIN, 11);
         lblClasesTotales.setFont(labelFont);
@@ -272,6 +278,10 @@ public class VentanaPrincipal extends JFrame {
         confirmacionBajaPanel.add(btnAceptarBaja);
         confirmacionBajaPanel.add(btnCancelarBaja);
         confirmacionBajaPanel.setVisible(false);
+
+        // ── BOTON VOLVER ──────────────────────────────────
+
+        btnVolver = new JButton("Volver al panel principal");
 
         // ── SISTEMA DE CARDS ──────────────────────────────
 
@@ -311,22 +321,19 @@ public class VentanaPrincipal extends JFrame {
         Font lblFont = new Font("SansSerif", Font.PLAIN, 11);
 
         gbcP.gridx = 0; gbcP.gridy = 0; gbcP.weightx = 0;
-        JLabel l1 = new JLabel("Nombre:");
-        l1.setFont(lblFont);
+        JLabel l1 = new JLabel("Nombre:"); l1.setFont(lblFont);
         perfilPanel.add(l1, gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilNombre, gbcP);
 
         gbcP.gridx = 0; gbcP.gridy = 1; gbcP.weightx = 0;
-        JLabel l2 = new JLabel("Carrera:");
-        l2.setFont(lblFont);
+        JLabel l2 = new JLabel("Carrera:"); l2.setFont(lblFont);
         perfilPanel.add(l2, gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilCarrera, gbcP);
 
         gbcP.gridx = 0; gbcP.gridy = 2; gbcP.weightx = 0;
-        JLabel l3 = new JLabel("Anio Ingreso:");
-        l3.setFont(lblFont);
+        JLabel l3 = new JLabel("Anio Ingreso:"); l3.setFont(lblFont);
         perfilPanel.add(l3, gbcP);
         gbcP.gridx = 1; gbcP.weightx = 1;
         perfilPanel.add(txtPerfilAnioIngreso, gbcP);
@@ -346,29 +353,25 @@ public class VentanaPrincipal extends JFrame {
         gbcI.insets = new Insets(3, 4, 3, 4);
 
         gbcI.gridx = 0; gbcI.gridy = 0; gbcI.weightx = 0;
-        JLabel i1 = new JLabel("Nombre:");
-        i1.setFont(lblFont);
+        JLabel i1 = new JLabel("Nombre:"); i1.setFont(lblFont);
         inscripcionPanel.add(i1, gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscNombre, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 1; gbcI.weightx = 0;
-        JLabel i2 = new JLabel("Codigo (unico):");
-        i2.setFont(lblFont);
+        JLabel i2 = new JLabel("Codigo (unico):"); i2.setFont(lblFont);
         inscripcionPanel.add(i2, gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscCodigo, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 2; gbcI.weightx = 0;
-        JLabel i3 = new JLabel("Cuatrimestre:");
-        i3.setFont(lblFont);
+        JLabel i3 = new JLabel("Cuatrimestre:"); i3.setFont(lblFont);
         inscripcionPanel.add(i3, gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(comboCuatrimestre, gbcI);
 
         gbcI.gridx = 0; gbcI.gridy = 3; gbcI.weightx = 0;
-        JLabel i4 = new JLabel("Anio:");
-        i4.setFont(lblFont);
+        JLabel i4 = new JLabel("Anio:"); i4.setFont(lblFont);
         inscripcionPanel.add(i4, gbcI);
         gbcI.gridx = 1; gbcI.weightx = 1;
         inscripcionPanel.add(txtInscAnio, gbcI);
@@ -486,8 +489,6 @@ public class VentanaPrincipal extends JFrame {
         lblReporte.setFont(new Font("SansSerif", Font.PLAIN, 16));
         panelReportes.add(lblReporte, BorderLayout.CENTER);
 
-        JButton btnVolver = new JButton("Volver al panel principal");
-        btnVolver.setActionCommand("VOLVER_PRINCIPAL");
         JPanel panelVolver = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelVolver.setBackground(FONDO_APP);
         panelVolver.add(btnVolver);
@@ -545,35 +546,26 @@ public class VentanaPrincipal extends JFrame {
 
         btnCancelarBaja.setActionCommand("CANCELAR_BAJA");
         btnCancelarBaja.addActionListener(al);
+
+        btnVolver.setActionCommand("VOLVER_PRINCIPAL");
+        btnVolver.addActionListener(al);
     }
 
     // ────────────────────────────────────────────────────────────
     //  API PUBLICA — GETTERS
     // ────────────────────────────────────────────────────────────
 
-    public String getTxtInscNombre() {
-        return txtInscNombre.getText().trim();
-    }
-
-    public String getTxtInscCodigo() {
-        return txtInscCodigo.getText().trim();
-    }
+    public String getTxtInscNombre()  { return txtInscNombre.getText().trim(); }
+    public String getTxtInscCodigo()  { return txtInscCodigo.getText().trim(); }
+    public String getTxtInscAnio()    { return txtInscAnio.getText().trim(); }
+    public String getTxtNota()        { return txtNota.getText().trim(); }
+    public boolean isPresente()       { return rbPresente.isSelected(); }
 
     public int getComboCuatrimestre() {
         return Integer.parseInt((String) comboCuatrimestre.getSelectedItem());
     }
 
-    public String getTxtInscAnio() {
-        return txtInscAnio.getText().trim();
-    }
-
-    public String getTxtNota() {
-        return txtNota.getText().trim();
-    }
-
-    public int getSelectedRow() {
-        return tabla.getSelectedRow();
-    }
+    public int getSelectedRow() { return tabla.getSelectedRow(); }
 
     public String getSelectedCodigo() {
         int fila = tabla.getSelectedRow();
@@ -597,21 +589,17 @@ public class VentanaPrincipal extends JFrame {
         modeloTabla.setRowCount(0);
         if (filas == null || filas.isEmpty()) {
             modeloTabla.addRow(new Object[]{
-                "\u2014", "Sin materias inscriptas", "\u2014", "\u2014", "\u2014", "\u2014", "\u2014"
+                    "\u2014", "Sin materias inscriptas", "\u2014", "\u2014", "\u2014", "\u2014", "\u2014"
             });
             return;
         }
-        for (String[] fila : filas) {
-            modeloTabla.addRow(fila);
-        }
+        for (String[] fila : filas) modeloTabla.addRow(fila);
     }
 
     public void actualizarAlertas(List<String> items) {
         modeloAlertas.clear();
         if (items == null) return;
-        for (String item : items) {
-            modeloAlertas.addElement(item);
-        }
+        for (String item : items) modeloAlertas.addElement(item);
     }
 
     public void setClasesTotales(int total) {
@@ -636,17 +624,14 @@ public class VentanaPrincipal extends JFrame {
     //  API PUBLICA — NAVEGACION CARDS
     // ────────────────────────────────────────────────────────────
 
-    public void mostrarPanelPrincipal() {
-        cardLayout.show(panelCards, "PRINCIPAL");
-    }
-
-    public void mostrarPanelReportes() {
-        cardLayout.show(panelCards, "REPORTES");
-    }
+    public void mostrarPanelPrincipal() { cardLayout.show(panelCards, "PRINCIPAL"); }
+    public void mostrarPanelReportes()  { cardLayout.show(panelCards, "REPORTES"); }
 
     public void mostrarConfirmacionBaja(boolean mostrar) {
         btnDarDeBaja.setVisible(!mostrar);
         confirmacionBajaPanel.setVisible(mostrar);
+        confirmacionBajaPanel.getParent().revalidate();
+        confirmacionBajaPanel.getParent().repaint();
     }
 
     // ────────────────────────────────────────────────────────────
@@ -661,8 +646,8 @@ public class VentanaPrincipal extends JFrame {
         JOptionPane.showMessageDialog(
                 this,
                 "Asistencia critica en " + materia + ": " +
-                String.format("%.1f%%", porcentaje) +
-                "\nRiesgo de perder la regularidad.",
+                        String.format("%.1f%%", porcentaje) +
+                        "\nRiesgo de perder la regularidad.",
                 "Alerta de Asistencia",
                 JOptionPane.WARNING_MESSAGE
         );
@@ -681,16 +666,6 @@ public class VentanaPrincipal extends JFrame {
     }
 
     // ────────────────────────────────────────────────────────────
-    //  MAIN DE PRUEBA INTERNO
-    // ────────────────────────────────────────────────────────────
-
-    public static void main(String[] args) {
-        java.awt.EventQueue.invokeLater(() -> {
-            new VentanaPrincipal().setVisible(true);
-        });
-    }
-
-    // ────────────────────────────────────────────────────────────
     //  RENDERERS ESTATICOS INTERNOS
     // ────────────────────────────────────────────────────────────
 
@@ -701,8 +676,8 @@ public class VentanaPrincipal extends JFrame {
             setHorizontalAlignment(SwingConstants.CENTER);
             setFont(new Font("SansSerif", Font.BOLD, 11));
             setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0, 0, 150), 1),
-                BorderFactory.createEmptyBorder(4, 6, 4, 6)
+                    BorderFactory.createLineBorder(new Color(0, 0, 150), 1),
+                    BorderFactory.createEmptyBorder(4, 6, 4, 6)
             ));
         }
     }
