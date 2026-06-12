@@ -9,5 +9,7 @@ Repositorio para la 2° Instancia Evaluativa de Interfaz Grafica - Usar swing y 
 
 
 
+Prompts hechos por: Bautista Pereiro
+https://docs.google.com/document/d/19lqiD-Tn9syARZO47Xy8gbgD3hGGJpawiS4FDgW7oNI/edit?usp=drive_link
 
 
