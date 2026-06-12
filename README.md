@@ -1,5 +1,5 @@
 # 🎓 Sistema de Autogestión Estudiantil — Interfaz Gráfica
-
+Si no funciona en NetBeans, usar en Intellij
 > 2° Instancia Evaluativa · Interfaz Gráfica · Java Swing + MVC + DAO
 
 **Integrantes:** Bautista Pereiro · Facundo Degani · Agustín Barrera
