@@ -2,7 +2,7 @@
 
 > 2° Instancia Evaluativa · Interfaz Gráfica · Java Swing + MVC + DAO
 
-Integrantes: Bautista Pereiro - Facundo Degani - Agustin Barrera
+**Integrantes:** Bautista Pereiro · Facundo Degani · Agustín Barrera
 
 <div align="center">
 
@@ -52,13 +52,13 @@ src/
 ## ✅ Funcionalidades implementadas
 
 - **Perfil del estudiante** — nombre, carrera y año de ingreso visibles en la UI
-- **Inscribir materia** — formulario con validaciones (código único, 3-10 chars, cuatrimestre 1 o 2)
-- **Dar de baja** — con confirmación previa via JOptionPane
-- **Registrar asistencia** — presente / ausente para la materia seleccionada; alerta si cae < 75%
-- **Registrar nota** — validación rango 0-10, máximo 5 notas por materia
+- **Inscribir materia** — formulario con validaciones (código único, 3–10 chars, cuatrimestre 1 o 2)
+- **Dar de baja** — con confirmación previa via `JOptionPane`
+- **Registrar asistencia** — presente / ausente para la materia seleccionada; alerta si cae por debajo del 75%
+- **Registrar nota** — validación rango 0–10, máximo 5 notas por materia
 - **Tabla de materias** — columnas: Código, Nombre, Cuatrimestre, Año, Asistencia %, Promedio, Condición
-- **Lista de alertas** — JList con materias en riesgo (asistencia 75%–85%)
-- **Panel de reportes** — situación general, materias en riesgo, aprobadas (via CardLayout)
+- **Lista de alertas** — `JList` con materias en riesgo (asistencia 75%–85%)
+- **Panel de reportes** — situación general, materias en riesgo y aprobadas (navegación via `CardLayout`)
 - **Persistencia** — carga al iniciar, guarda después de cada operación en archivos `.txt`
 - **Estado vacío** — mensaje visible cuando no hay materias inscriptas
 
@@ -72,14 +72,14 @@ src/
 
 ## 💾 Persistencia
 
-Se usan archivos de texto plano con separación por `|`:
+Archivos de texto plano con separación por `|`:
 
 ```
 materias.txt       →  CODIGO|NOMBRE|CUATRIMESTRE|ANIO
 inscripciones.txt  →  CODIGO|NOTA1,NOTA2|PRESENTES|TOTALES
 ```
 
-Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanzar error.
+Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanzar ningún error.
 
 ---
 
@@ -102,37 +102,39 @@ Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanza
 | Integrante | Rol |
 |---|---|
 | Bautista Pereiro | Diseño de interfaz en Figma · Testing · Corrección de bugs en Swing |
-| *(integrante 2)* | *(rol)* |
-| *(integrante 3)* | *(rol)* |
-| *(integrante 4)* | *(rol)* |
+| Facundo Degani | *(completar rol)* |
+| Agustín Barrera | *(completar rol)* |
+
+---
+
+## 🎥 Video explicativo
+
+[![Ver video](https://img.shields.io/badge/Google%20Drive-Ver%20video-blue?logo=googledrive)](https://drive.google.com/file/d/1z0AEp7Wm_o7B0FEsvhOPYQrNweLAAvCk/view?usp=drive_link)
 
 ---
 
 ## 🤖 Uso de IA
 
-La documentación de prompts utilizados está disponible en:
+| Integrante | Prompts |
+|---|---|
+| Bautista Pereiro | [Ver conversaciones](https://docs.google.com/document/d/19lqiD-Tn9syARZO47Xy8gbgD3hGGJpawiS4FDgW7oNI/edit?usp=drive_link) |
+| Agustín Barrera | [Ver conversaciones](https://docs.google.com/document/d/1ZfBFpKX05xw_Irz0OnFNQyXHp7DVQg3kuyl8SqWwLzA/edit?usp=drive_link) |
 
-- 📄 [Prompts de Bautista Pereiro](https://docs.google.com/document/d/19lqiD-Tn9syARZO47Xy8gbgD3hGGJpawiS4FDgW7oNI/edit?usp=drive_link)
-- 📄 [Prompts de Agustin Barrera](https://docs.google.com/document/d/1ZfBFpKX05xw_Irz0OnFNQyXHp7DVQg3kuyl8SqWwLzA/edit?usp=drive_link)
-
-Cada integrante tiene su propia carpeta `/docs/prompts/` con capturas de sus conversaciones.
+Las capturas individuales de cada integrante están en la carpeta `/docs/prompts/` del repositorio.
 
 ---
 
 ## 🎨 Diseño en Figma
 
-> *Agregar link al archivo de Figma acá*
+> *(Agregar link al archivo de Figma)*
 
-El diseño fue realizado antes de programar la interfaz, siguiendo los principios de UX/UI: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
+El diseño fue realizado antes de programar la interfaz, aplicando los principios de UX/UI vistos en clase: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
 
 ---
-
-video: https://drive.google.com/file/d/1z0AEp7Wm_o7B0FEsvhOPYQrNweLAAvCk/view?usp=drive_link
-
 
 ## ⚡ Desafíos encontrados
 
 - Separación estricta MVC: evitar que la Vista construya objetos del Modelo
-- Sincronización de la JTable y JList después de cada operación
+- Sincronización de `JTable` y `JList` después de cada operación
 - Manejo del EDT (Event Dispatch Thread) para evitar crashes en Swing
 - Persistencia robusta: arranque sin error cuando los `.txt` no existen
