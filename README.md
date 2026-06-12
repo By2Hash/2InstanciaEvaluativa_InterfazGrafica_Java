@@ -18,7 +18,7 @@
 
 </div>
 
-> *(Agregar link al archivo de Figma)*
+
 
 El diseño fue realizado antes de programar la interfaz, aplicando los principios de UX/UI vistos en clase: feedback inmediato, prevención de errores, visibilidad de estado y consistencia visual.
 
