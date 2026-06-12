@@ -131,7 +131,7 @@ Si los archivos no existen al iniciar, la app arranca con lista vacía sin lanza
 
 ## 🎥 Video explicativo
 
-[![Ver video](https://img.shields.io/badge/Google%20Drive-Ver%20video-blue?logo=googledrive)](https://drive.google.com/file/d/1z0AEp7Wm_o7B0FEsvhOPYQrNweLAAvCk/view?usp=drive_link)
+[![Ver video](https://drive.google.com/file/d/15nNPz-zBfYTejF3SkcGw4Fx6XfHVQqW-/view?usp=drive_link)
 
 ---
 
